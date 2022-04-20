@@ -54,16 +54,16 @@ Finally, here are example command lines. To acquire multiple ADCs at a time, rep
 ---------------------------------------------
 Launch baseline calculation
 
-./SingleDAQ -x "file.xml" -f "file_name" -b
+    ./SingleDAQ -x "file.xml" -f "file_name" -b
 
 ---------------------------------------------
 Launch oscilloscope mode in channel 0
 
-./SingleDAQ -x "file.xml" -f "file_name" -g0   
+    ./SingleDAQ -x "file.xml" -f "file_name" -g0   
 
 ---------------------------------------------
 Launch normal acquisition
 
-./SingleDAQ -x "file.xml" -f "file_name"       
+    ./SingleDAQ -x "file.xml" -f "file_name"       
 
 
