@@ -27,7 +27,8 @@ The only mendatory file which must be provided is the XML file. Templates can be
 
 -b : Launches the baseline calculation script. This enables the ADC to calibrate the baseline level, and should in principle be used before any "new" acquisition
 
--gn (n = channel number (0 to 7) : Launches acquisition with "Oscilloscope Mode". This enables the graphical display of the waveforms. This acquisition rate is much slower with this mode, and should not be used during normal acquisition. In oscilloscope mode, you can use the following command when the  terminal is selected:
+-gn (n = channel number (0 to 7) : Launches acquisition with "Oscilloscope Mode". This enables the graphical display of the waveforms. This acquisition rate is much slower with this mode, and should not be used during normal acquisition. In oscilloscope mode, you can use the following commands by pressing the keys on the keyboard when the terminal is selected:
+
 "w" : Lower threshold by 10 ADC units
 
 "e" : Raise threshold by 10 ADC units
