@@ -49,18 +49,18 @@ The only mendatory file which must be provided is the XML file. Templates can be
 
 =========================================================================================
 
-Finally, here are example command lines:
+Finally, here are example command lines. To acquire multiple ADCs at a time, replace "./SingleDAQ" with "./MultiDAQ".
 
--> Launch baseline calculation
+# Launch baseline calculation
 
 ./SingleDAQ -x "file.xml" -f "file_name" -b
 
--> Launch oscilloscope mode in channel 0
+# Launch oscilloscope mode in channel 0
 
 ./SingleDAQ -x "file.xml" -f "file_name" -g0   
 
--> Launch normal acquisition
+# Launch normal acquisition
 
 ./SingleDAQ -x "file.xml" -f "file_name"       
 
-To acquire multiple ADCs at a time, replace "./SingleDAQ" with "./MultiDAQ".
+
