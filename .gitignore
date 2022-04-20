@@ -1,4 +1,4 @@
-DAQ/CDAQ/build
+DAQ/CDAQ/build/*
 DAQ/CDAQ/bin/MultiDAQ
 DAQ/CDAQ/bin/SingleDAQ
 DAQ/CDAQ/bin/Plots
