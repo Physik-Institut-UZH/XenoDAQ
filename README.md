@@ -50,7 +50,8 @@ The only mendatory file which must be provided is the XML file. Templates can be
 =========================================================================================
 
 Finally, here are example command lines. To acquire multiple ADCs at a time, replace "./SingleDAQ" with "./MultiDAQ".
-==============================================
+
+---------------------------------------------
 Launch baseline calculation
 
 ./SingleDAQ -x "file.xml" -f "file_name" -b
