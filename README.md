@@ -8,10 +8,10 @@ The working version of the DAQ is found in the CDAQ directory. Follow these step
 
 1) Copy the git repository on your machine
 2) Go to /DAQ/CDAQ/ and type the following lines:
-        3) mkdir build
-4) cd build
-5) cmake ..
-6) make
+        mkdir build
+        cd build
+        cmake ..
+        make
 
 The software is now compiled and ready for use
 
