@@ -4,7 +4,9 @@ First DAQ used on Xenoscope. Code based on DAQ wrote by Julien Wulf. Includes Si
 
 # Installation
 
-1) Copy the repository on your machine
+The working version of the DAQ is found in the CDAQ directory. Follow these steps to compile the software:
+
+1) Copy the git repository on your machine
 2) Go to /DAQ/CDAQ/ and type the following lines:
 3) mkdir build
 4) cd build
