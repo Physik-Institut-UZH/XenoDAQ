@@ -47,7 +47,7 @@ The only mendatory file which must be provided is the XML file. Templates can be
 
 "3" : Set y-axis scale to "adjusting"
 
-======================================================================================================================
+=================================================
 
 Finally, here are example command lines. To acquire multiple ADCs at a time, replace "./SingleDAQ" with "./MultiDAQ".
 
