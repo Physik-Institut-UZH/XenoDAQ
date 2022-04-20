@@ -8,7 +8,7 @@ The working version of the DAQ is found in the CDAQ directory. Follow these step
 
 1) Copy the git repository on your machine
 2) Go to /DAQ/CDAQ/ and type the following lines:
-3) mkdir build
+        3) mkdir build
 4) cd build
 5) cmake ..
 6) make
@@ -51,17 +51,14 @@ The only mendatory file which must be provided is the XML file. Templates can be
 
 Finally, here are example command lines. To acquire multiple ADCs at a time, replace "./SingleDAQ" with "./MultiDAQ".
 
----------------------------------------------
 Launch baseline calculation
 
     ./SingleDAQ -x "file.xml" -f "file_name" -b
 
----------------------------------------------
 Launch oscilloscope mode in channel 0
 
     ./SingleDAQ -x "file.xml" -f "file_name" -g0   
 
----------------------------------------------
 Launch normal acquisition
 
     ./SingleDAQ -x "file.xml" -f "file_name"       
