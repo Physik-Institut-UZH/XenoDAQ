@@ -29,13 +29,21 @@ The only mendatory file which must be provided is the XML file. Templates can be
 
 -gn (n = channel number (0 to 7) : Launches acquisition with "Oscilloscope Mode". This enables the graphical display of the waveforms. This acquisition rate is much slower with this mode, and should not be used during normal acquisition. In oscilloscope mode, you can use the following command when the  terminal is selected:
 "w" : Lower threshold by 10 ADC units
+
 "e" : Raise threshold by 10 ADC units
+
 "r" : Lower threshold by 1 ADC units
+
 "t" : Raise threshold by 1 ADC units
+
 "+" : Change channel number +1
+
 "-" : Change channel number -1
+
 "1" : Set y-axis scale to "full"
+
 "2" : Set y-axis scale to "fixed"
+
 "3" : Set y-axis scale to "adjusting"
 
 Finally, here are example command lines:
