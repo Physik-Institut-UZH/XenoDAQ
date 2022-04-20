@@ -5,7 +5,7 @@
 	<global>
 		<source>Xenoscope PM</source>		<!-- What is measured? -->
 		<notes>Test</notes>		<!-- Comments -->
-		<user>FG, YB</user>				<!-- Last user which used the ADC-->
+		<user> YB</user>				<!-- Last user which used the ADC-->
 		<path>~/xenoscope/PM/test_data/</path>		<!-- Path -->
 		<daq_version>5.0.0</daq_version>		<!-- DAQ Version-->
 		<nb_evts>500000</nb_evts>				<!-- Number of events-->
@@ -34,8 +34,8 @@
 			<!-- Activate channels to read out. Every module starts from 0 -->
 			<!-- This also sets the threshold for ZLE -->
 			<!-- Threshold:  0 = Off, [1,16000] = On -->
-			<ch_0>13500</ch_0>       s                	
-		      	<ch_1>2500</ch_1>
+			<ch_0>14000</ch_0>                       	
+		      	<ch_1>5000</ch_1>
 		     	<ch_2>0</ch_2>                            
 		      	<ch_3>0</ch_3>                           
 		      	<ch_4>0</ch_4>                          
@@ -91,7 +91,7 @@
 	
 	     		<memoryorganisation>16</memoryorganisation>  	<!-- Blockorganisation of the ADC-->
 			<custom_size>50000</custom_size>      		<!-- Custom event size in samples (must be < nb_samples_per_event) -->
-			<posttrigger>49500</posttrigger> 		<!-- Samples after trigger -->
+			<posttrigger>49999</posttrigger> 		<!-- Samples after trigger -->
 			<sampling_freq>100000000</sampling_freq>	<!-- Sampling frequency -->
 			<voltage_range>2.25</voltage_range>		<!-- voltage range of ADC/DAC -->
 			<sample_size_ADC>14</sample_size_ADC>		<!-- Sampling width in bits (ADC) -->
@@ -99,8 +99,8 @@
 
 			<baseline>0</baseline>  		<!-- Position of baselines (all channels) -->	
 			<!-- **If baseline is set to 0, set each channels separetly** --> 
-			<baseline_0>14000</baseline_0>
-			<baseline_1>2000</baseline_1>
+			<baseline_0>13000</baseline_0>
+			<baseline_1>4000</baseline_1>
 			<baseline_2>500</baseline_2>
 			<baseline_3>500</baseline_3>
 			<baseline_4>500</baseline_4>
