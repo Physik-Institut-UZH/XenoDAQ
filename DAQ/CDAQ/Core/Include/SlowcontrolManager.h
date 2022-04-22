@@ -71,6 +71,7 @@ class SlowcontrolManager: public Common
    void AddBytes(int bytes){m_bytes=bytes+m_bytes;m_totalB=m_totalB+bytes/1024.;}			//m_total in Mb
 
 
+
  private:
 	int ApplyXMLFile();			//Read XML-Config for the Storage Manager
 	char m_OutputFolder[100];	//Outputfolder name (custom)
@@ -79,6 +80,7 @@ class SlowcontrolManager: public Common
 	
 
 	struct timeval m_begin, m_end, m_total;				//Timing of the DAQ 
+
     double m_time, m_seconds, m_useconds;    			//mili, mikro and mili seconds
     int m_lastevents; 									//Last events since call 	
     int m_events;										//Total events

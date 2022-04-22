@@ -29,6 +29,7 @@
 #include "keyb.h"	// getch() and kbhit() for Linux
 #include <signal.h>	// to catch for Ctrl-C 
 #include <global.h>
+#include <common.h>
 #include <VMEManager.h>
 #include <ADCManager1730.h>
 #include <ADCManager1724.h>
@@ -68,12 +69,15 @@ int main(int argc, char *argv[], char *envp[] )
     //Managers
     
     //SlowcontrolManager
+	int m_verboseFlag = 0;
 	SlowcontrolManager* slowcontrolManager = new SlowcontrolManager();
-	slowcontrolManager->ProcessInput(argc, argv, envp);
+	m_verboseFlag = slowcontrolManager->ProcessInput(argc, argv, envp);
+
+
 	if(slowcontrolManager->Init()==-1)
 		return 0;
-		
-	//VME-Manger
+
+	//VME-Manager
 	VMEManager* vManager = new VMEManager();
 
 	vManager->SetPCILink(0);
@@ -97,15 +101,15 @@ int main(int argc, char *argv[], char *envp[] )
 	adcManager->SetBaselineFile(bp.c_str());
 	adcManager->SetXMLFile(slowcontrolManager->GetXMLFile());
 
-	if(adcManager->Init()==-1);
+	if(adcManager->Init(m_verboseFlag)==-1);
 	if(slowcontrolManager->GetADCInformation()) return 0;
 	if(slowcontrolManager->GetBaselineCalculation()){
-		adcManager->ReadBaseLine();
+		adcManager->ReadBaseLine(m_verboseFlag);
 		adcManager->CalculateBaseLine();
 		return 0;
 	}
 	else
-		adcManager->ReadBaseLine();
+		adcManager->ReadBaseLine(m_verboseFlag);
 
 	//Scope-Manager
 	ScopeManager* scopeManager = new ScopeManager();
@@ -119,7 +123,7 @@ int main(int argc, char *argv[], char *envp[] )
 		//ROOT Manager
 		TApplication *theApp;
 		theApp = new TApplication("App", &argc, argv);	
-		if(scopeManager->Init()==-1)
+		if(scopeManager->Init(m_verboseFlag)==-1)
 			return 0;
 	}
 
@@ -129,7 +133,7 @@ int main(int argc, char *argv[], char *envp[] )
 	storageManager->SetEventLength(adcManager->GetEventLength());
 	storageManager->SetXMLFile(slowcontrolManager->GetXMLFile());
 	storageManager->SetFolderName(slowcontrolManager->GetFolderName());
-	if(storageManager->Init()==-1);
+	if(storageManager->Init(m_verboseFlag)==-1);
 
 
     /*Stuff for the keyboard*/
@@ -137,6 +141,9 @@ int main(int argc, char *argv[], char *envp[] )
     int quit=0; 
     int counter=0; 
     c=0;
+	printf(KYEL);
+	printf("Initialization Complete.\n");
+	printf(RESET);
     
     slowcontrolManager->StartAquistion();
     adcManager->Enable();

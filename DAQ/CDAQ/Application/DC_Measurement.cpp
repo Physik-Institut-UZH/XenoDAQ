@@ -71,8 +71,9 @@ int main(int argc, char *argv[], char *envp[] )
     	//Managers
     
     	//SlowcontrolManager
+	int m_verboseFlag = 0;
 	SlowcontrolManager* slowcontrolManager = new SlowcontrolManager();
-	slowcontrolManager->ProcessInput(argc, argv, envp);
+	m_verboseFlag = slowcontrolManager->ProcessInput(argc, argv, envp);
 	if(slowcontrolManager->Init()==-1)
 		return 0;
 		
@@ -104,7 +105,7 @@ int main(int argc, char *argv[], char *envp[] )
 		adcs[i]->SetBaselineFile(bp.c_str());
 		adcs[i]->SetXMLFile(slowcontrolManager->GetXMLFile());
 
-		if(adcs[i]->Init()==-1);
+		if(adcs[i]->Init(m_verboseFlag)==-1);
 	}
 	if(slowcontrolManager->GetADCInformation()) return 0;
 	if(slowcontrolManager->GetBaselineCalculation()){
@@ -116,7 +117,7 @@ int main(int argc, char *argv[], char *envp[] )
 	}
 	else{
 		for(int i=0;i<number;i++){
-				adcs[i]->ReadBaseLine();
+				adcs[i]->ReadBaseLine(m_verboseFlag);
 		}
 	}
 
@@ -132,7 +133,7 @@ int main(int argc, char *argv[], char *envp[] )
 		//ROOT Manager
 		TApplication *theApp;
 		theApp = new TApplication("App", &argc, argv);	
-		if(scopeManager->Init()==-1)
+		if(scopeManager->Init(m_verboseFlag)==-1)
 			return 0;
 	}
 
@@ -147,6 +148,10 @@ int main(int argc, char *argv[], char *envp[] )
     
 
     	int countermax=0; 
+
+	printf(KYEL);
+	printf("Initialization Complete.\n");
+	printf(RESET);
 
     	slowcontrolManager->StartAquistion();
     	//adcManager->Enable();

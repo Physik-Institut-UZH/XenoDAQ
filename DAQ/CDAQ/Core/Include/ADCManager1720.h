@@ -30,12 +30,12 @@ public:
 		virtual ~ADCManager1720();
     
 		//Init Function
-		int Init();
+		int Init(int m_verboseFlag);
     
 private:
 
 		//Read Register from ADC
-		int RegisterReading();
+		int RegisterReading(int);
 
 		int ApplyXMLFile();											//Read XML-Config for the Storage Manager
 };

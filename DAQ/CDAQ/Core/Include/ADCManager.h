@@ -206,7 +206,7 @@ public:
     	virtual ~ADCManager();
     
     	//Init Function
-    	virtual int Init(){};
+    	virtual int Init(int){};
     
     	//Set Functions
 	void SetCrateHandle(int handle){m_CrateHandle=handle;}
@@ -228,7 +228,7 @@ public:
 	u_int32_t* GetBuffer(){return buffer;}
 
 	//Read the current baseline configuration from file
-	int ReadBaseLine();
+	int ReadBaseLine(int);
 
 	//Set new Baseline configuration
 	int CalculateBaseLine();
@@ -291,7 +291,7 @@ protected:
 	int adc_readblt();
 
    	//Write Register from Settingfile to ADC
-   	int RegisterWriting(string configfilename);
+   	int RegisterWriting(string configfilename, int);
 
 	//Read Register from ADC
 	virtual int RegisterReading(){};

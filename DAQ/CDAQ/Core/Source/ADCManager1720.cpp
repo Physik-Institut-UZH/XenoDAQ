@@ -52,53 +52,62 @@ ADCManager1720::~ADCManager1720()
 {
 }
 
-int ADCManager1720::Init(){
-
-	printf(KYEL);
-	printf("\nReset the ADC Module %i . . .\n\n",m_module);
-	printf(RESET);
-
+int ADCManager1720::Init(int m_verboseFlag){
+	if (m_verboseFlag == 1){
+		printf(KYEL);
+		printf("\nReset the ADC Module %i . . .\n\n",m_module);
+		printf(RESET);
+	}
 	//Reset the board first
     m_hex=0x1;
     adc_writereg(SoftwareResetReg,m_hex);
     sleep(3);
 
 	//Set Register Setting from default file (only to give the user some freedom)
-   	RegisterWriting(m_RegisterFileName);
+   	RegisterWriting(m_RegisterFileName, m_verboseFlag);
 
 	//Set Register/other Settings from xml-file
 	ApplyXMLFile();
 
 	//Read Settings
-	RegisterReading();
+	RegisterReading(m_verboseFlag);
 	
 	return 0;
 }
 
 //-------------------------------------------------------------------
 // Reading some Register Settings from the ADC
-int ADCManager1720::RegisterReading(){
-	printf(KYEL);
-	printf("Reading ADC Configurations\n\n");
-	printf(RESET);
-
-	printf(KGRN);
+int ADCManager1720::RegisterReading(int m_verboseFlag){
+	if (m_verboseFlag == 1){
+		printf(KYEL);
+		printf("Reading ADC Configurations\n\n");
+		printf(RESET);
+		printf(KGRN);
+	}	
 	u_int32_t data;
 
 	// Read Board Type and Memory Size
  	adc_readreg(0x8140,data);
 	m_MemorySize=(int)((data >> 8) & 0xFF);
-	printf("	Board Type: %s;  Memory Size: %d MByte per channel\n", "v1720",m_MemorySize);
+	if (m_verboseFlag == 1){
+		printf("	Board Type: %s;  Memory Size: %d MByte per channel\n", "v1720",m_MemorySize);
+	}
 
     	// Read Firmware Revisions
 	adc_readreg(FirmwareRegN,data);	
-    	printf("	Firmware: Mezzanine: %d.%d (%x/%d/%d), ", data>>8 & 0xFF, data & 0xFF, data>>16 & 0xFF, data>>24 & 0xF, 2000 + (data>>28 & 0xF));
+	if (m_verboseFlag == 1){
+    		printf("	Firmware: Mezzanine: %d.%d (%x/%d/%d), ", data>>8 & 0xFF, data & 0xFF, data>>16 & 0xFF, data>>24 & 0xF, 2000 + (data>>28 & 0xF));
+	}
 
-	adc_readreg(MotherBoardFWRevision,data);	
-    	printf("	Mother Board: %d.%d (%x/%d/%d)\n", data>>8 & 0xFF, data & 0xFF, data>>16 & 0xFF, data>>24 & 0xF, 2000 + (data>>28 & 0xF));
+	adc_readreg(MotherBoardFWRevision,data);
+	if (m_verboseFlag == 1){	
+    		printf("	Mother Board: %d.%d (%x/%d/%d)\n", data>>8 & 0xFF, data & 0xFF, data>>16 & 0xFF, data>>24 & 0xF, 2000 + (data>>28 & 0xF));
+	}
 
 	adc_readreg(BlockOrganizationReg,data);
-	 printf("	Block Organization: %i\n",data);
+	if (m_verboseFlag == 1){
+		printf("	Block Organization: %i\n",data);
+	}
 
     	// Expected Event Size in Words (32Bit including Header)
 	m_ExpectedEvSize = (int)((((m_MemorySize*pow(2,20))/(int)pow(2,data))*8+16)/4);			//From the Handbook  
@@ -116,8 +125,10 @@ int ADCManager1720::RegisterReading(){
 	// Read DAC Status
 	for(int i=0;i<8;i++){
 		adc_readreg( StatusRegN+(i*0x100), data);
-       	        if (data&4) printf("	Channel %i DAC Status: busy\n",i);
-       		else printf("	Channel %i DAC Status: ok\n",i);
+		if (m_verboseFlag == 1){
+       	       	 	if (data&4) printf("	Channel %i DAC Status: busy\n",i);
+       			else printf("	Channel %i DAC Status: ok\n",i);
+		}
 	}
 
 	//Read Channel Enable Mask
@@ -126,7 +137,9 @@ int ADCManager1720::RegisterReading(){
 	m_hex=0;
 	for(int i=0; i<8;i++){
 		adc_readreg(TresholdRegN+(i*0x0100),m_hex);
-		std::cout << "	Channel: " << i << "	" << ((data >> i) & 0x01) << " Treshold: " << std::dec << m_hex << std::endl;
+		if (m_verboseFlag == 1){
+			std::cout << "	Channel: " << i << "	" << ((data >> i) & 0x01) << " Treshold: " << std::dec << m_hex << std::endl;
+		}
 	}
 	
     // Read BLT Event Number Register
@@ -141,12 +154,15 @@ int ADCManager1720::RegisterReading(){
 	m_EnableInt =  m_EnableVMEIrq | m_EnableOLIrq;
     	m_Align64   = (data>>5) & 1;
 
-      if (m_EnableOLIrq)  printf("	OLINK Interrupt enabled.\n");
-      if (m_EnableVMEIrq) printf("	VME Interrupt %d enabled.\n", m_EnableVMEIrq);
-	  if (!m_EnableInt)   printf(" 	No interrupts enabled.\n");
+	if (m_verboseFlag == 1){
+      		if (m_EnableOLIrq)  printf("	OLINK Interrupt enabled.\n");
+     		if (m_EnableVMEIrq) printf("	VME Interrupt %d enabled.\n", m_EnableVMEIrq);
+		if (!m_EnableInt)   printf(" 	No interrupts enabled.\n");
+	}
 
     // Read Monitor Configuration and DAC
-	adc_readreg(MonitorModeReg,data);	
+	adc_readreg(MonitorModeReg,data);
+	if (m_verboseFlag == 1){	
 	  switch (data&0xFFF) {
 	    case 0: printf("	Monitor: Trigger Majority Mode\n");
 	      break;
@@ -159,21 +175,25 @@ int ADCManager1720::RegisterReading(){
 	    case 4: printf("	Monitor: Voltage Level Mode\n");
 	      break;
 	  } 
-
+	}
     // Read FrontPanel Input Data Settings (NIM/TTL)
  	adc_readreg(FrontPanelIODataReg,data);	
+	if (m_verboseFlag == 1){
 	 if (data & 1) printf("	Front Panel Input Signal: TTL\n"); 
      	           else printf("	Front Panel Input Signal: NIM\n"); 
-
+	}
 	//Read customsize window
 	adc_readreg(CustomWindowReg,data);
-	printf("	Customsize window: %d\n", (int)data*4);
+	if (m_verboseFlag == 1){
+		printf("	Customsize window: %d\n", (int)data*4);
+	}
 	m_length=(int)data*4-CORRECTION;								//Correction of the Event (last 10 Samples are broken
 
 	//read Posttrigger Settings
-	adc_readreg(PostTriggerReg,data);	
-    printf("	PostTrigger Setting: %d samples = %.2f us\n", (int)(data)*4,(4*data)*0.004);
-
+	adc_readreg(PostTriggerReg,data);
+	if (m_verboseFlag == 1){	
+    		printf("	PostTrigger Setting: %d samples = %.2f us\n", (int)(data)*4,(4*data)*0.004);
+	}
 	printf(RESET);
 	
 	if (!m_EnableBerr) {  // BERR must be enabled!

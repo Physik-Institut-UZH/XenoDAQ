@@ -20,6 +20,7 @@
 #include <string>
 #include "ADCManager.h"
 #include "global.h"
+#include "common.h"
 
 //Root Libaries
 #include <TH1D.h>
@@ -109,8 +110,8 @@ int ADCManager::SoftwareTrigger(){
 
 //-------------------------------------------------------------------
 // Read BaseLine 
-int ADCManager::ReadBaseLine(){
-	RegisterWriting(m_BaselineFileName);
+int ADCManager::ReadBaseLine(int m_verboseFlag){
+	RegisterWriting(m_BaselineFileName,m_verboseFlag);
 	sleep(3);
 }
 
@@ -518,7 +519,8 @@ int ADCManager::adc_readblt()		// the value to read
 
 //-------------------------------------------------------------------
 // Apply the Settings from the RegisterConfigFile to the ADC
-int ADCManager::RegisterWriting(string configfilename){
+int ADCManager::RegisterWriting(string configfilename, int m_verboseFlag){
+
   FILE *f_ini;
   char str[100];
   if( (f_ini = fopen(configfilename.c_str(), "r")) == NULL ) {
@@ -528,8 +530,10 @@ int ADCManager::RegisterWriting(string configfilename){
 	  return -1;
   }
   else{ printf(KYEL);
-	printf("\nReading Configuration File %s\n", configfilename.c_str());
-	std::cout << std::endl;
+	if (m_verboseFlag == 1){	
+		printf("\nReading Configuration File %s\n", configfilename.c_str());
+		std::cout << std::endl;
+	}
 	printf(RESET);
   }
   
@@ -542,15 +546,19 @@ int ADCManager::RegisterWriting(string configfilename){
           if (strstr(str, "WRITE_REGISTER")!=NULL) {
               fscanf(f_ini, "%x", (int *)&m_addr);
               fscanf(f_ini, "%x", (int *)&m_hex);
-	      printf(KGRN);
-              printf("	Address: %x Data: %x",m_addr, m_hex);
-              printf(RESET);
-	      std::cout << std::endl;
+		if (m_verboseFlag == 1){
+	      		printf(KGRN);
+              		printf("	Address: %x Data: %x",m_addr, m_hex);
+              		printf(RESET);
+	      		std::cout << std::endl;
+		}
               if (adc_writereg(m_addr,m_hex)<0){return -1;} 
           }
       }
    }
-   std::cout << std::endl;
+	if (m_verboseFlag == 1){	
+   	std::cout << std::endl;
+	}
    return 0;
 }
 

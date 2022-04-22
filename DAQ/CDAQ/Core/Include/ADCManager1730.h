@@ -32,13 +32,13 @@ public:
     	virtual ~ADCManager1730();
     
     	//Init Function
-    	int Init();
+    	int Init(int m_verboseFlag);
     
 
 private:
 	
 		//Read Register from ADC
-		int RegisterReading();
+		int RegisterReading(int);
 
 		int ApplyXMLFile();
 };

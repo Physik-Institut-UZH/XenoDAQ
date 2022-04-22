@@ -37,7 +37,7 @@ class ScopeManager: public Common
 	   virtual ~ScopeManager();
 	   
 		//Function 
-		int Init();
+		int Init(int);
 		
 		//Set Function	
 		void SetBuffer(u_int32_t *adcBuffer){buffer=adcBuffer;} 

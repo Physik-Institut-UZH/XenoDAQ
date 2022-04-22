@@ -39,17 +39,18 @@ StorageManager::~StorageManager()
 	output->Close();
 }
 
-int StorageManager::Init(){
+int StorageManager::Init(int m_verboseFlag){
 
 				ApplyXMLFile();
 
+		if (m_verboseFlag == 1){
 				printf(KYEL);
-                printf("Creating Storage path\n\n");
-                printf(RESET);
-                printf(KGRN);
-                std::cout << " 	Storage Path: " << m_path +  m_OutputFolder +"/"+ m_moduleName.c_str()   << std::endl ;
-                printf(RESET);
-
+               	 	printf("Creating Storage path\n\n");
+               	 	printf(RESET);
+               	 	printf(KGRN);
+               	 	std::cout << " 	Storage Path: " << m_path +  m_OutputFolder +"/"+ m_moduleName.c_str()   << std::endl ;
+                	printf(RESET);
+		}
 		/*Create Output Folder and ROOT Folder*/
                 m_command= "mkdir -p " + m_path + m_OutputFolder;
                 system(m_command.c_str());
@@ -67,7 +68,7 @@ int StorageManager::Init(){
 					cmd << "cp " << m_XmlFileName << " " << m_path + m_OutputFolder << "/" << m_OutputFolder << ".xml";
 					system(cmd.str().c_str());
 
-					InitROOT();
+					InitROOT(m_verboseFlag);
 		}
 		if(m_WriteToFile==1 && m_ZLE==1) {
                                 //Copy XML file to the output directory
@@ -83,7 +84,7 @@ int StorageManager::Init(){
 
 
 
-int StorageManager::InitROOT(){
+int StorageManager::InitROOT(int m_verboseFlag){
 
 		stringstream ss;
 		string data;
@@ -93,9 +94,17 @@ int StorageManager::InitROOT(){
 		tt << m_module;
 		string t;
 		tt >> t;
-		m_command = m_path + m_OutputFolder + "/" + m_moduleName.c_str() + m_OutputFolder + "_" + "Module_" + t + "_" + data + ".root";
+
+      		m_command = m_path + m_OutputFolder + "/" + m_moduleName.c_str() + m_OutputFolder + "_" + "Module_" + t + "_" + data + ".root";
 		m_filenumber++;
-		std::cout << std::endl << m_command << std::endl << std::endl;
+		if (m_verboseFlag == 1){
+			printf(KYEL);
+                	printf("Creating ROOT file\n\n");
+                	printf(RESET);
+                	printf(KGRN);	
+			std::cout << std::endl << m_command << std::endl << std::endl;
+         		printf(RESET);
+		}
 		output = new TFile(m_command.c_str(), "RECREATE");
 		tree = new TTree("t1","");
 

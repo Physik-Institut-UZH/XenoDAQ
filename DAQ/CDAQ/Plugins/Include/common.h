@@ -25,6 +25,7 @@ class Common
 	  void gettimestring(char* buffer);
 	  int   error(char *node);
 	  static std::string getdotdaqdir();
+	  int m_verboseFlag;		//Verbose Flag: 0 = OFF, 1 = ON
 };
 
 #endif

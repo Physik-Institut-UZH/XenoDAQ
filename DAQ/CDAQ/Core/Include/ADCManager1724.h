@@ -13,6 +13,8 @@
 #include "ADCManager.h"
 #include "common.h"
 
+
+
 using namespace std;
 
 /*
@@ -29,12 +31,13 @@ public:
 		virtual ~ADCManager1724();
     
 		//Init Function
-		int Init();
+		int Init(int);
+
     
 private:
 
 		//Read Register from ADC
-		int RegisterReading();
+		int RegisterReading(int);
 
 		int ApplyXMLFile();											//Read XML-Config for the Storage Manager
 };

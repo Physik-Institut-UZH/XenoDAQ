@@ -37,7 +37,7 @@ class ScopeManager: public Common
 	   virtual ~ScopeManager();
 	   
 		//Function 
-		int Init();
+		int Init(int);
 		
 		//Set Function	
 		void SetBuffer(u_int32_t *adcBuffer){buffer=adcBuffer;} 
@@ -59,7 +59,7 @@ class ScopeManager: public Common
 		void SetChannelNumber(int channeL){if(channeL<0)m_channel=0;else if(channeL>7){m_channel=channeL%8; m_module=channeL/8;} else m_channel=channeL;}
 
 		//Set Module number
-		void SetModulNumber(int module){m_channel=module;}
+		void SetModulNumber(int module){m_module=module;}
 
 		//Set threshold active 
 		void SetThreshold(){m_triggertype=2;}

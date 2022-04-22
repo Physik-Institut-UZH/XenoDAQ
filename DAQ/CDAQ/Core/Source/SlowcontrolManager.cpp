@@ -7,6 +7,7 @@
 #include <string>
 #include "SlowcontrolManager.h"
 #include "global.h"
+#include "common.h"
 
 /*
 Author: Julien Wulf UZH
@@ -16,9 +17,10 @@ Revised: Frédéric Girard
 
 SlowcontrolManager::SlowcontrolManager()
 {
-	 m_pmtNb,m_BoardInfo,m_baseline,m_errflag,m_graphics,m_lastevents,m_events,m_bytes,m_totalB,m_Nbmodule,m_triggertype=m_totalevents=m_type=m_numberChain=0;
-	printf("\n");
+	 m_pmtNb,m_BoardInfo,m_baseline,m_errflag,m_graphics,m_lastevents,m_events,m_bytes,m_totalB,m_Nbmodule,m_triggertype=m_totalevents=m_type=m_numberChain=m_verboseFlag=0;
+	printf("\n\n\n");
 	printf("%s***************************************************************************\n",KGRN);
+	printf("\n");
 	printf("%s Y88b   d88P                            8888888b.        d8888  .d88888b.   \n",KGRN);
 	printf("%s  Y88b d88P                             888  \"Y88b      d88888 d88P\" \"Y88b  \n",KGRN);
 	printf("%s   Y88o88P                              888    888     d88P888 888     888  \n",KGRN);
@@ -28,11 +30,11 @@ SlowcontrolManager::SlowcontrolManager()
 	printf("%s  d88P Y88b  Y8b.     888  888 Y88..88P 888  .d88P d8888888888 Y88b.Y8b88P  \n",KGRN);
 	printf("%s d88P   Y88b  \"Y8888  888  888  \"Y88P\"  8888888P\" d88P     888  \"Y888888\"   \n",KGRN);
 	printf("%s                                                                      Y8b    \n\n",KGRN);
- 
-        printf("%s                         Original Code By Julien Wulf                       \n",KGRN);
-        printf("%s                          Revised By Frédéric Girard                        \n",KGRN);
-	printf("%s                                 version: 6.0                               \n",KGRN);
-        printf("%s                                    04-2022                                 \n",KGRN);
+        printf("%s                        Original Code By Julien Wulf                        \n",KGRN);
+        printf("%s                         Revised By Frédéric Girard                         \n",KGRN);
+	printf("%s                                version: 6.0                                \n",KGRN);
+        printf("%s                                   04-2022                                  \n",KGRN);
+	printf("\n");
 	printf("%s***************************************************************************\n\n",KGRN);
 	printf(RESET);
 	sleep(1);
@@ -77,11 +79,14 @@ int SlowcontrolManager::ProcessInput( int argc, char *argv[], char *envp[])
 
  
   //  search for possible options 
- while ( ( start = getopt( argc, argv, "x:g:f:biow" ) ) != -1 )  {
+ while ( ( start = getopt( argc, argv, "x:g:f:biowv" ) ) != -1 )  {
       someArgs=1;
       switch (start) {
         case 'f': 
           sprintf(m_OutputFolder,"%s",optarg);
+          break;
+	  case 'v': 
+          	m_verboseFlag = 1;
           break;
         case 'x': 
           sprintf(m_XmlFileName,"%s",optarg);
@@ -114,20 +119,30 @@ int SlowcontrolManager::ProcessInput( int argc, char *argv[], char *envp[])
         }
   }
   if (m_errflag || someArgs==0) {
-      printf(KRED);
-      printf("usage: %s [-f file|-x file||-g p|-b|-i|-h|]\n", argv[1] );
-      printf("\t-f write to file \n" );
-      printf("\t-x read settings from XML-file file\n");
-      printf("\t-g Oscilloscope: display PMT p (SLOW!)\n");
-      printf("\t-i displays hardware information\n" );
-      printf("\t-b adjust baselines automatically\n" );
-      printf("\t-o show help for oscilloscope mode\n");
-      printf("\t-h display this help\n\n" );
+      printf(RESET);
+
+      printf("\n===========================================================================\n" );
+      printf("                                  Help Menu                                  \n" );
+      printf("===========================================================================\n\n" );
+      printf("usage:  %s [-f file|-x file||-g p|-b|-i|-v|-h|]\n\n", argv[1] );
+
+      printf("\t-x   Read settings from XML-file file . (Mandatory)\n");      
+      printf("\t-f   Write to file .................... (Optional)\n" );
+      printf("\t-g p Oscilloscope: Display waveform p . (Optional)\n");
+      printf("\t-i   Displays hardware information .... (Optional)\n" );
+      printf("\t-b   Adjust baselines automatically ... (Optional)\n" );
+      printf("\t-o   Show help for oscilloscope mode .. (Optional)\n");
+      printf("\t-v   Enable Verbose Mode .............. (Optional)\n");
+      printf("\t-h   Display this help ................ (Optional)\n\n");
+
+      printf("\nStandard syntax to launch acquisition:\n\n" );
+      printf("\t./SingleDAQ -x \"fileName.xml\" -f \"fileName\" -opts\n" );
+      printf("\t./MultiDAQ  -x \"fileName.xml\" -f \"fileName\" -opts\n\n" );
       printf(RESET);
       exit( 2 );
   }
   
-  return 0;
+  return m_verboseFlag;
 }
 
 
@@ -209,7 +224,14 @@ int SlowcontrolManager::ApplyXMLFile(){
 	txt[0]='\0';
 
 	printf(KYEL);
-	printf("Reading User Configuration XML-File %s\n\n",m_XmlFileName);
+	printf("For help menu, use '-h'\n\n");
+
+	printf("Initialization in progress. Please wait.\n\n");
+	
+	if (m_verboseFlag == 1){
+		printf("Reading User Configuration XML-File %s\n\n",m_XmlFileName);
+	}
+
 	printf(RESET);
 
 	printf(KGRN);
@@ -219,100 +241,129 @@ int SlowcontrolManager::ApplyXMLFile(){
 	xstr=xMainNode.getAttribute("author");
 	if (xstr) {
 		strcpy(txt,xstr); 
-		printf("	(Author: %s)\n",txt);	  
+		if (m_verboseFlag == 1){
+			printf("	(Author: %s)\n",txt);
+		}  
 	} else error((char*)"XML-author"); 
 	
 	xstr=xMainNode.getAttribute("date");		
  	if (xstr) {
 		strcpy(txt,xstr);
-		printf("	(Date: %s)\n\n",txt);
+		if (m_verboseFlag == 1){
+			printf("	(Date: %s)\n\n",txt);
+		}
 	} else error((char*)"XML-date"); 	
 	
 	// parse global DAQ settings -----------------------------------------------
 	XMLNode xNode=xMainNode.getChildNode("global");
-	printf("	Global Settings:\n\n");
+	if (m_verboseFlag == 1){
+		printf("	Global Settings:\n\n");
+	}
 	
 	xstr=xNode.getChildNode("user").getText();
 	if (xstr) {
 		strcpy(txt,xstr); 
+	if (m_verboseFlag == 1){
 		printf("	User:        %s\n",txt); 
+	}
 	} else error((char*)"XML-user");
 	
 	xstr=xNode.getChildNode("daq_version").getText();
 	if (xstr) {
 		strcpy(txt,xstr); 
+	if (m_verboseFlag == 1){
 		printf("	DAQ Version: %s\n",txt); 
+	}
 	} else error((char*)"XML-daq_version");
 	
 
 	xstr=xNode.getChildNode("source").getText();
 	if (xstr) {
 		strcpy(txt,xstr); 
+	if (m_verboseFlag == 1){
 		printf("	Source:      %s\n",txt); 
+	}
 	} else error((char*)"XML-source");
 
 	xstr=xNode.getChildNode("notes").getText();
 	if (xstr) {
 		strcpy(txt,xstr); 
-		printf("	Comments:    %s\n",txt); 
+	if (m_verboseFlag == 1){
+		printf("	Comments:    %s\n",txt);
+	} 
 	} else error((char*)"XML-notes");
 
 	xstr=xNode.getChildNode("path").getText();
 	if (xstr) {
 		strcpy(txt,xstr); 
+	if (m_verboseFlag == 1){
 		printf("	Path:        %s\n",txt);
+	}
 		strcpy(m_OutputPath,txt);
 	} else error((char*)"XML-path");
 
 	xstr=xNode.getChildNode("nb_evts").getText();
 	if (xstr) {
 		strcpy(txt,xstr); 
-    if (strstr(txt, "-1")!=NULL) printf("	NoF Events:  infinite\n");
-       		            else printf("	NoF Events:  %s\n",txt);
+	if (m_verboseFlag == 1){
+    		if (strstr(txt, "-1")!=NULL) printf("	NoF Events:  infinite\n");
+       		else printf("	NoF Events:  %s\n",txt);
+	}
 		m_totalevents=atoi(txt);  
 	} else error((char*)"XML-nb_evts");
 	
 	xstr=xNode.getChildNode("nb_evts_per_file").getText();
 	if (xstr) {
 		strcpy(txt,xstr); 
+	if (m_verboseFlag == 1){
 		printf("	Events/File: %s\n",txt);
+	}
 	} else error((char*)"XML-nb_evts_per_file");
 
 	xstr=xNode.getChildNode("store_data").getText();
 	if (xstr) {
 		strcpy(txt,xstr); 
 		int WriteToFile=atoi(txt); 
-		if (WriteToFile<0 || WriteToFile>7) WriteToFile=0;	
+		if (WriteToFile<0 || WriteToFile>7) WriteToFile=0;
+	if (m_verboseFlag == 1){	
 		printf("	File Format: ");
+	
 		switch (WriteToFile) {
 		case 0: printf("Data NOT stored\n"); break;
 		case 1: printf("ROOT format\n"); break;
 		case 2: printf("ASCII format\n"); break;
 		case 3: printf("Binary format\n"); break;
-    }	
+  	}
+  }	
 	} else error((char*)"XML-store_data");
 
 	xstr=xNode.getChildNode("displaytime").getText();
 	if (xstr) {
 		strcpy(txt,xstr); 
+	if (m_verboseFlag == 1){
 		printf("	DisplayTime: %s s\n\n",txt);
+	}
 		//t.DisplayTime=atoi(txt);  
 	} else error((char*)"XML-displaytime");
 	
 	 // parse global ADC settings -----------------------------------------------
 	xNode=xMainNode.getChildNode("adc").getChildNode("global");
-	printf("	ADC: Global settings:\n\n");
+	if (m_verboseFlag == 1){
+		printf("	ADC: Global settings:\n\n");
+	}
 	
 	xstr=xNode.getChildNode("ADCType").getText();
 	if (xstr) {
 		strcpy(txt,xstr);
 		m_type=atoi(txt);
+	if (m_verboseFlag == 1){
 		if(m_type==0)
 				printf("	ADC: v1720  \n");  
 		else if(m_type==1)
 				printf("	ADC: v1724    \n"); 
 		else if(m_type==2)
 				printf("	ADC: v1730    \n"); 
+	}
 	} else error((char*)"XML-ADCType");
 	 
 	
@@ -320,7 +371,9 @@ int SlowcontrolManager::ApplyXMLFile(){
 	if (xstr) {
 		strcpy(txt,xstr); 
 		m_Nbmodule=atoi(txt);
+	if (m_verboseFlag == 1){
 		printf("	Number Modules: %s\n",txt); 
+	}
 	} else error((char*)"XML-nb_modules");
 	
 	m_address=new string[m_Nbmodule];
@@ -334,7 +387,9 @@ int SlowcontrolManager::ApplyXMLFile(){
 			stringstream ss;
 			ss << txt;
 			ss >> m_address[i];
-			printf("	ADC %i Address: %s\n",i,txt);
+			if (m_verboseFlag == 1){
+				printf("	ADC %i Address: %s\n",i,txt);
+			}
 		} else error((char*)modules);
 	}
 	
@@ -342,13 +397,17 @@ int SlowcontrolManager::ApplyXMLFile(){
 	if (xstr) {
 		strcpy(txt,xstr); 
 		m_numberChain=atoi(txt);
-		printf("	Link in Chain: %s\n",txt); 
+		if (m_verboseFlag == 1){
+			printf("	Link in Chain: %s\n",txt);
+		} 
 	} else error((char*)"link_in_chain");
 
 
 	//--- Active channels of Modules-------
 	for(int j=0;j<m_Nbmodule;j++){
-		printf("	Module: %i\n",j);
+		if (m_verboseFlag == 1){
+			printf("	Module: %i\n",j);
+		}
 		for(int i=0;i<8;i++){
 			char channel[300];
 			sprintf(channel,"ch_%i",i+j*8);
@@ -357,7 +416,9 @@ int SlowcontrolManager::ApplyXMLFile(){
 				strcpy(txt,xstr);
 				temp=atoi(txt);
 				if(temp!=0){
-					printf("	Channel %i Active. Threshold: %i\n",i,temp);
+					if (m_verboseFlag == 1){
+						printf("	Channel %i Active. Threshold: %i\n",i,temp);
+					}
 				}
 		   } else error((char*)channel);
 	  }
@@ -386,7 +447,9 @@ int SlowcontrolManager::ApplyXMLFile(){
 					  bufSize=32;
 					  break; 
 		}
-		printf("	Memory Organisation: %sk Samples/Evt\n",txt);
+		if (m_verboseFlag == 1){
+			printf("	Memory Organisation: %sk Samples/Evt\n",txt);
+		}
 	} else error((char*)"XML-memoryorganisation");
   
 
@@ -394,7 +457,9 @@ int SlowcontrolManager::ApplyXMLFile(){
 	if (xstr) {
         strcpy(txt,xstr);
         temp=(int)(atoi(txt)/10.);       // 10 samples per memory location
-        printf("	Custom Size: %d samples\n",temp*10);
+	if (m_verboseFlag == 1){
+        	printf("	Custom Size: %d samples\n",temp*10);
+	}
 	} else error((char*)"XML-custom_size");
   
   
@@ -402,102 +467,144 @@ int SlowcontrolManager::ApplyXMLFile(){
 	xstr=xNode.getChildNode("posttrigger").getText();
 	if (xstr) {
 		strcpy(txt,xstr); 
-		printf("	Posttrigger: %s Samples\n",txt);
+		if (m_verboseFlag == 1){
+			printf("	Posttrigger: %s Samples\n",txt);
+		}
 		temp=atoi(txt); 
 	} else error((char*)"XML-posttrigger");
 		
 	xstr=xNode.getChildNode("baseline").getText();
 	if (xstr) {
 		strcpy(txt,xstr);
-		printf("	Baseline:    %s ADC-Counts\n",txt);
+		if (m_verboseFlag == 1){
+			printf("	Baseline:    %s ADC-Counts\n",txt);
+		}
 		
 	} else error((char*)"XML-baseline");
 	
 	xstr=xNode.getChildNode("baselineiteration").getText();
 	if (xstr) {
 		strcpy(txt,xstr);
-		printf("	Baseline Iterations:	%s \n",txt);
-		
+		if (m_verboseFlag == 1){
+			printf("	Baseline Iterations:	%s \n",txt);
+		}
 	} else error((char*)"XML-baselineiteration");
 	
 	
 	xstr=xNode.getChildNode("sampling_freq").getText();
 	if (xstr) {
 		strcpy(txt,xstr); 
-		printf("	Frequency:   %s Hz\n",txt); 
+		if (m_verboseFlag == 1){
+			printf("	Frequency:   %s Hz\n",txt);
+		} 
 	} else error((char*)"XML-sampling_freq");
 	
 	xstr=xNode.getChildNode("voltage_range").getText();
 	if (xstr) {
 		strcpy(txt,xstr); 
-		printf("	Voltage Range: %s V\n",txt); 
+		if (m_verboseFlag == 1){
+			printf("	Voltage Range: %s V\n",txt); 
+		}
 	} else error((char*)"voltage_range");
 	
 	xstr=xNode.getChildNode("Sample_size_ADC").getText();
 	if (xstr) {
 		strcpy(txt,xstr); 
-		printf("	Sample Size ADC: %s bit\n",txt); 
+		if (m_verboseFlag == 1){
+			printf("	Sample Size ADC: %s bit\n",txt); 
+		}
 	} else error((char*)"Sample_size_ADC");
 	
 	xstr=xNode.getChildNode("Sample_size_DAC").getText();
 	if (xstr) {
 		strcpy(txt,xstr); 
-		printf("	Sample Size DAC: %s bit\n\n",txt); 
+		if (m_verboseFlag == 1){
+			printf("	Sample Size DAC: %s bit\n\n",txt); 
+		}
 	} else error((char*)"Sample_size_DAC");
   
 	// ADC: parse ADC Trigger Settings
 	xNode=xMainNode.getChildNode("adc").getChildNode("triggerSettings");
-	printf("	ADC: Trigger Settings:\n\n");
+	if (m_verboseFlag == 1){
+		printf("	ADC: Trigger Settings:\n\n");
+	}
 	
 	xstr=xNode.getChildNode("trigger").getText();
 	if (xstr) {
 		strcpy(txt,xstr); 
 		temp=atoi(txt);
 
-    		if (temp==0){ printf("	Trigger: External\n");
+    		if (temp==0){ 
+			if (m_verboseFlag == 1){
+				printf("	Trigger: External\n");
+			}
 			xstr=xNode.getChildNode("TTL").getText();
 			if(xstr) {
 				strcpy(txt,xstr);
 				temp=(int)(atoi(txt));
 				if(temp==1)
-					printf("	Trigger Logic: TTL\n\n");
+					if (m_verboseFlag == 1){
+						printf("	Trigger Logic: TTL\n\n");
+					}
 				else
-					printf("	Trigger Logic: NIM\n\n");
+					if (m_verboseFlag == 1){
+						printf("	Trigger Logic: NIM\n\n");
+					}
 			} else error((char*)"XML-TTL");
 		}
   		else if (temp==1){ 
-			printf("	Trigger: Software\n");
+			if (m_verboseFlag == 1){
+				printf("	Trigger: Software\n");
+			}
 			xstr=xNode.getChildNode("SoftwareRate").getText();;
 			if (xstr) {
-				strcpy(txt,xstr); 
-				printf("	Software Rate: %s Hz\n\n",txt); 
+				strcpy(txt,xstr);
+				if (m_verboseFlag == 1){ 
+					printf("	Software Rate: %s Hz\n\n",txt);
+				} 
 			}
 			else error((char*)"XML-SoftwareRate");
 		}
-    		else if (temp==2) printf("	Trigger: Channel Treshold\n\n");
-    else {printf("	Trigger: Per Channel Trigger Type\n\n");}
+    		else if (temp==2) {
+			if (m_verboseFlag == 1){			
+				printf("	Trigger: Channel Treshold\n\n");
+			}	
+		}
+    else {
+	if (m_verboseFlag == 1){
+		printf("	Trigger: Per Channel Trigger Type\n\n");
+	}
+	}
   } else error((char*)"XML-trigger");
 
 	
 	// ADC: parse waveform display options
 	xNode=xMainNode.getChildNode("graphics");
-	printf("	Graphics Settings:\n\n");
+	if (m_verboseFlag == 1){
+		printf("	Graphics Settings:\n\n");
+	}
 	xstr=xNode.getChildNode("ydisplay").getText();
 	if (xstr) {
 		strcpy(txt,xstr); 
+	if (m_verboseFlag == 1){
 		printf("	y-display: %s\n",txt);
+	}
 	} else error((char*)"XML-ydisplay");
 
 	xstr=xNode.getChildNode("yaxis_low").getText();
 	if (xstr) {
 		strcpy(txt,xstr); 
-		printf("	y-axis-low: %s\n",txt);
+		if (m_verboseFlag == 1){
+			printf("	y-axis-low: %s\n",txt);
+		}
 	} else error((char*)"XML-yaxis_low");
   
 	xstr=xNode.getChildNode("yaxis_high").getText();
 	if (xstr) {
 		strcpy(txt,xstr); 
-		printf("	y-axis-high %s\n",txt);  
+		if (m_verboseFlag == 1){
+			printf("	y-axis-high %s\n",txt);  
+		}
 	} else error((char*)"XML-yaxis_high");
 
   

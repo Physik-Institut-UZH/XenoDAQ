@@ -206,7 +206,7 @@ public:
     	virtual ~ADCManager();
     
     	//Init Function
-    	virtual int Init(){};
+    	virtual int Init(int){};
     
     	//Set Functions
 	void SetCrateHandle(int handle){m_CrateHandle=handle;}
@@ -228,7 +228,7 @@ public:
 	u_int32_t* GetBuffer(){return buffer;}
 
 	//Read the current baseline configuration from file
-	int ReadBaseLine();
+	int ReadBaseLine(int);
 
 	//Set new Baseline configuration
 	int CalculateBaseLine();
@@ -333,7 +333,7 @@ protected:
 	int m_iteration;									//Number of Baseline iterations
 	int m_resDAC;										//Resolution DAC
 	int m_resADC;										//Resolution ADC
-	int m_Voltage;										//Voltage range ADC
+	double m_Voltage;										//Voltage range ADC
 	int m_nbCh;										//Number of the Channels
 	int m_triggertyp;									//External, internal trigger, Daisy Chain
 	int m_nbchs;										//Channel Number

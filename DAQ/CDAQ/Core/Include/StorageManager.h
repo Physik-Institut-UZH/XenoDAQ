@@ -39,9 +39,9 @@ public:
 	virtual ~StorageManager();
 
     	//Init Function
-	int Init();
+	int Init(int);
 
-	int InitROOT();
+	int InitROOT(int);
 	int InitROOTZLE();
 	//Set Function
 	void SetBuffer(u_int32_t *adcBuffer){buffer=adcBuffer;} 
