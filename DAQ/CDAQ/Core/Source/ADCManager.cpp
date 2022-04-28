@@ -41,7 +41,8 @@ Revised: Frédéric Girard
 ADCManager::ADCManager()
 {
 	m_CrateHandle= m_ADCaddr=0;
-	m_EnableVMEIrq=m_Align64=m_EnableBerr=m_EnableOLIrq=m_EnableInt=m_EvAlign=m_Frequency=m_Baseline=m_resDAC=m_resDAC=m_Voltage=m_nbCh=m_triggertyp=m_SoftwareRate=m_module=0;
+	m_EnableVMEIrq=m_Align64=m_EnableBerr=m_EnableOLIrq=m_EnableInt=m_EvAlign=m_Frequency=m_Baseline=
+m_resDAC=m_Voltage=m_nbCh=m_triggertyp=m_SoftwareRate=m_module=0;
 	for(int i=0;i<8;i++){
 		m_DACTarget[i]=0;
 		m_DACLevel[i]=0;
@@ -179,6 +180,7 @@ int ADCManager::EnableSoftware(){
 // Calculate BaseLine 
 int ADCManager::CalculateBaseLine(){
 	
+	int m_interation_counter = 0;
 	printf(KYEL);
 	std::cout <<  "Calculate Baseline of Module: " <<  m_module << std::endl << std::endl;
 	printf(KGRN);
@@ -186,9 +188,13 @@ int ADCManager::CalculateBaseLine(){
 	//Disable Triggerout independet baseline calculation 
 	adc_writereg(FrontPanelTriggerOutReg,0);
 
+	int n_channels_start = 0;
+
+
 	//Several Baseline iterations
    	for(int i=0;i<m_iteration;i++){
 		//Check if it converged 
+		m_interation_counter++;
 		int n_channels=0;		
 
 		std::cout << std::endl << "	Iteration: " << i << std::endl << std::endl;
@@ -208,7 +214,10 @@ int ADCManager::CalculateBaseLine(){
 			pnt++;
 	 
 			//Read ChannelMask (Handbook)
-			int ChannelMask=buffer[pnt] & 0xFF;                 
+			int ChannelMask=buffer[pnt] & 0xFF;  
+			if (i == 0){
+				for (int j=0; j<8; j++) if ((ChannelMask>>j)&1){ n_channels_start++; }
+               		}
 
 			pnt++;    
 		
@@ -221,19 +230,24 @@ int ADCManager::CalculateBaseLine(){
 			pnt+=2;
 			
 			for (int j=0; j<8; j++) { // read all activated channels
-				
+				m_mean = 0;
 			
 				// read only the channels given in ChannelMask
-				if ((ChannelMask>>j)&1 ){CurrentChannel=j;}
-						else continue;
+				if ((ChannelMask>>j)&1 && m_DACFinished[j]==0){
+					CurrentChannel=j; 
 				
-				if (CurrentChannel!=j) { pnt+=Size; continue; }
+				}
+				else if ((ChannelMask>>j)&1 && m_DACFinished[j]==1){
+					pnt+=Size; continue;
+}
+				else continue;
 
+				
 				if (j>j) return 0;	
 				  
 				cnt=0;                              // counter of waveform data
 				wavecnt=0;                          // counter to reconstruct times within waveform
-				m_mean=0;
+			
 				while (cnt<(Size))
 				{		
 					m_mean+= (double)((buffer[pnt]&0xFFFF));
@@ -244,15 +258,20 @@ int ADCManager::CalculateBaseLine(){
 				m_mean=m_mean/(wavecnt);
 				m_diff=m_mean-m_DACTarget[j];
 
-				m_correction= ((m_Voltage/pow(2.0,m_resADC))*m_diff)/((m_Voltage)/pow(2,m_resDAC));		//(mV of one Count ADC * difference)/mV of one Count of DAC
+				m_correction= ((m_Voltage/pow(2.0,m_resADC))*m_diff)/((m_Voltage)/pow(2.0,m_resDAC));		//(mV of one Count ADC * difference)/mV of one Count of DAC
 				adc_readreg(DACRegN+(j*0x100),m_hex);	
 				m_hex=m_hex+m_correction;
 				m_DACLevel[j]=m_hex;
 
 				std::cout << "::::::: Module: " << m_module << " Channel: " << j << " :::::::" << std::endl ;
 				std::cout << "	Mean: " << m_mean << " Target : " << m_DACTarget[j] << " Diff: " <<  m_diff << " DAC: " << m_DACLevel[j] <<  std::endl << std::endl;
-			 	m_DACFinished[j]=m_diff;
+			 	//m_DACFinished[j]=m_diff;
 				adc_writereg(DACRegN+(j*0x100),m_hex);
+
+				if(abs(m_diff)<3.0){
+					m_DACFinished[j]=1;
+					continue;
+				}
 
 			} // end for-loop
 		}
@@ -265,10 +284,10 @@ int ADCManager::CalculateBaseLine(){
 		//Check if the it converged
 		int check=0;
 		for(int k=0;k<8;k++){
-			if(abs(m_DACFinished[k])<3.0)
-				check=check+1;
+			if(abs(m_DACFinished[k])==1){
+				check=check+1;}
 		}
-		if(check==8){
+		if(check==n_channels_start){
 			printf(KYEL);
 			std::cout << "	Baseline Calculation Converged after: " << i << " Iterations " << std::endl << std::endl;
 			break;
@@ -305,8 +324,16 @@ int ADCManager::CalculateBaseLine(){
     }  
     		  
     fclose(dacfile);
-    printf(KYEL);
-    std::cout << fn.str() <<  " successfully written" << std::endl << std::endl;
+    
+
+    
+    if (m_interation_counter+1 >= m_iteration){
+	printf(KRED);
+      std::cout << "At least one baseline did not converge. Please relaunch the baseline calculation" << std::endl << std::endl;
+    }else{ 
+ 	printf(KYEL);   
+       std::cout << fn.str() <<  " successfully written" << std::endl << std::endl;
+    }
     printf(RESET);
 
 

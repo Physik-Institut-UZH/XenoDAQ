@@ -330,7 +330,8 @@ protected:
 	//ADC Properties
 	int m_Frequency;									//Sampling frequency
 	int m_Baseline;										//Baseline
-	int m_iteration;									//Number of Baseline iterations
+	int m_iteration;
+	int m_iteration_counter;	//Number of Baseline iterations
 	int m_resDAC;										//Resolution DAC
 	int m_resADC;										//Resolution ADC
 	double m_Voltage;										//Voltage range ADC
