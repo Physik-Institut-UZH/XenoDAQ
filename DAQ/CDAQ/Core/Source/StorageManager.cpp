@@ -259,11 +259,11 @@ int StorageManager::FillZLEROOTContainer(){
 	//m_eventcounter = buffer[pnt] & 0xFFFFFF;
 
 
-        //pnt+=1;
+        pnt+=1;
 	//read TT
 	//m_triggertimetag = buffer[pnt] & 0xFFFFFFFF;
 
-       // pnt+=1;
+        pnt+=1;
 	//read event
 	if(Size>0){
 
@@ -424,11 +424,11 @@ int StorageManager::FillROOTContainer(){
 	//m_eventcounter = buffer[pnt] & 0xFFFFFF;
 
 
-        //pnt+=1;
+        pnt+=1;
 	//read TT
 	//m_triggertimetag = buffer[pnt] & 0xFFFFFFFF;
 
-        //pnt+=1;
+        pnt+=1;
 	//read event
 
         for (int j=0; j<m_nbchs; j++) { // read all channels
