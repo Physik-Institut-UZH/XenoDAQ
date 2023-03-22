@@ -206,7 +206,7 @@ public:
     	virtual ~ADCManager();
     
     	//Init Function
-    	virtual int Init(){};
+    	virtual int Init(int){};
     
     	//Set Functions
 	void SetCrateHandle(int handle){m_CrateHandle=handle;}
@@ -228,7 +228,7 @@ public:
 	u_int32_t* GetBuffer(){return buffer;}
 
 	//Read the current baseline configuration from file
-	int ReadBaseLine();
+	int ReadBaseLine(int);
 
 	//Set new Baseline configuration
 	int CalculateBaseLine();
@@ -291,7 +291,7 @@ protected:
 	int adc_readblt();
 
    	//Write Register from Settingfile to ADC
-   	int RegisterWriting(string configfilename);
+   	int RegisterWriting(string configfilename, int);
 
 	//Read Register from ADC
 	virtual int RegisterReading(){};
@@ -330,7 +330,8 @@ protected:
 	//ADC Properties
 	int m_Frequency;									//Sampling frequency
 	int m_Baseline;										//Baseline
-	int m_iteration;									//Number of Baseline iterations
+	int m_iteration;
+	int m_iteration_counter;	//Number of Baseline iterations
 	int m_resDAC;										//Resolution DAC
 	int m_resADC;										//Resolution ADC
 	double m_Voltage;										//Voltage range ADC

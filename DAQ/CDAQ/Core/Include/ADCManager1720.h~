@@ -35,7 +35,7 @@ public:
 private:
 
 		//Read Register from ADC
-		int RegisterReading(int);
+		int RegisterReading();
 
 		int ApplyXMLFile();											//Read XML-Config for the Storage Manager
 };

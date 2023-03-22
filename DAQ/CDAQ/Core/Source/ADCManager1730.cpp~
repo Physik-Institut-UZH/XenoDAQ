@@ -74,11 +74,9 @@ int ADCManager1730::Init(int m_verboseFlag){
 	//Read Settings
 	RegisterReading(m_verboseFlag);
 
-	if (m_verboseFlag == 1){
-		printf(KYEL);
-		printf("\nCalibrate the ADC . . .\n\n");
-		printf(RESET);
-	}
+	printf(KYEL);
+	printf("\nCalibrate the ADC . . .\n\n");
+	printf(RESET);
 
 	//calibration of the Channels with the current Setting
     m_hex=0x1;

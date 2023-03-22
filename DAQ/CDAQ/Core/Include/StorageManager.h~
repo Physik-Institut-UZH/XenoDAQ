@@ -39,9 +39,9 @@ public:
 	virtual ~StorageManager();
 
     	//Init Function
-	int Init();
+	int Init(int);
 
-	int InitROOT();
+	int InitROOT(int);
 	int InitROOTZLE();
 	//Set Function
 	void SetBuffer(u_int32_t *adcBuffer){buffer=adcBuffer;} 
@@ -69,7 +69,7 @@ int FillROOTContainer();
 	int FillZLEROOTContainer();
 	double m_time;							//Storage of the current time
 	double m_eventcounter;						//Storage of the eventcounter
-	double m_triggertimetag;						//Storage of the triggertimertag
+	double m_triggertimetag;					//Storage of the triggertimertag
     	string m_command;						//tmp variable
 	string m_path;							//Path for storage
 	string m_moduleName;						//Folder for the differen Modules

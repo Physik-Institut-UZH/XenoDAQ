@@ -20,6 +20,7 @@
 #include <string>
 #include "ADCManager.h"
 #include "global.h"
+#include "common.h"
 
 //Root Libaries
 #include <TH1D.h>
@@ -40,7 +41,8 @@ Revised: Frédéric Girard
 ADCManager::ADCManager()
 {
 	m_CrateHandle= m_ADCaddr=0;
-	m_EnableVMEIrq=m_Align64=m_EnableBerr=m_EnableOLIrq=m_EnableInt=m_EvAlign=m_Frequency=m_Baseline=m_resDAC=m_resDAC=m_Voltage=m_nbCh=m_triggertyp=m_SoftwareRate=m_module=0;
+	m_EnableVMEIrq=m_Align64=m_EnableBerr=m_EnableOLIrq=m_EnableInt=m_EvAlign=m_Frequency=m_Baseline=
+m_resDAC=m_Voltage=m_nbCh=m_triggertyp=m_SoftwareRate=m_module=0;
 	for(int i=0;i<8;i++){
 		m_DACTarget[i]=0;
 		m_DACLevel[i]=0;
@@ -109,8 +111,8 @@ int ADCManager::SoftwareTrigger(){
 
 //-------------------------------------------------------------------
 // Read BaseLine 
-int ADCManager::ReadBaseLine(){
-	RegisterWriting(m_BaselineFileName);
+int ADCManager::ReadBaseLine(int m_verboseFlag){
+	RegisterWriting(m_BaselineFileName,m_verboseFlag);
 	sleep(3);
 }
 
@@ -178,6 +180,7 @@ int ADCManager::EnableSoftware(){
 // Calculate BaseLine 
 int ADCManager::CalculateBaseLine(){
 	
+	int m_interation_counter = 0;
 	printf(KYEL);
 	std::cout <<  "Calculate Baseline of Module: " <<  m_module << std::endl << std::endl;
 	printf(KGRN);
@@ -185,9 +188,13 @@ int ADCManager::CalculateBaseLine(){
 	//Disable Triggerout independet baseline calculation 
 	adc_writereg(FrontPanelTriggerOutReg,0);
 
+	int n_channels_start = 0;
+
+
 	//Several Baseline iterations
    	for(int i=0;i<m_iteration;i++){
 		//Check if it converged 
+		m_interation_counter++;
 		int n_channels=0;		
 
 		std::cout << std::endl << "	Iteration: " << i << std::endl << std::endl;
@@ -207,7 +214,10 @@ int ADCManager::CalculateBaseLine(){
 			pnt++;
 	 
 			//Read ChannelMask (Handbook)
-			int ChannelMask=buffer[pnt] & 0xFF;                 
+			int ChannelMask=buffer[pnt] & 0xFF;  
+			if (i == 0){
+				for (int j=0; j<8; j++) if ((ChannelMask>>j)&1){ n_channels_start++; }
+               		}
 
 			pnt++;    
 		
@@ -220,19 +230,24 @@ int ADCManager::CalculateBaseLine(){
 			pnt+=2;
 			
 			for (int j=0; j<8; j++) { // read all activated channels
-				
+				m_mean = 0;
 			
 				// read only the channels given in ChannelMask
-				if ((ChannelMask>>j)&1 ){CurrentChannel=j;}
-						else continue;
+				if ((ChannelMask>>j)&1 && m_DACFinished[j]==0){
+					CurrentChannel=j; 
 				
-				if (CurrentChannel!=j) { pnt+=Size; continue; }
+				}
+				else if ((ChannelMask>>j)&1 && m_DACFinished[j]==1){
+					pnt+=Size; continue;
+}
+				else continue;
 
+				
 				if (j>j) return 0;	
 				  
 				cnt=0;                              // counter of waveform data
 				wavecnt=0;                          // counter to reconstruct times within waveform
-				m_mean=0;
+			
 				while (cnt<(Size))
 				{		
 					m_mean+= (double)((buffer[pnt]&0xFFFF));
@@ -243,15 +258,20 @@ int ADCManager::CalculateBaseLine(){
 				m_mean=m_mean/(wavecnt);
 				m_diff=m_mean-m_DACTarget[j];
 
-				m_correction= ((m_Voltage/pow(2.0,m_resADC))*m_diff)/((m_Voltage)/pow(2,m_resDAC));		//(mV of one Count ADC * difference)/mV of one Count of DAC
+				m_correction= ((m_Voltage/pow(2.0,m_resADC))*m_diff)/((m_Voltage)/pow(2.0,m_resDAC));		//(mV of one Count ADC * difference)/mV of one Count of DAC
 				adc_readreg(DACRegN+(j*0x100),m_hex);	
 				m_hex=m_hex+m_correction;
 				m_DACLevel[j]=m_hex;
 
 				std::cout << "::::::: Module: " << m_module << " Channel: " << j << " :::::::" << std::endl ;
 				std::cout << "	Mean: " << m_mean << " Target : " << m_DACTarget[j] << " Diff: " <<  m_diff << " DAC: " << m_DACLevel[j] <<  std::endl << std::endl;
-			 	m_DACFinished[j]=m_diff;
+			 	//m_DACFinished[j]=m_diff;
 				adc_writereg(DACRegN+(j*0x100),m_hex);
+
+				if(abs(m_diff)<3.0){
+					m_DACFinished[j]=1;
+					continue;
+				}
 
 			} // end for-loop
 		}
@@ -264,10 +284,10 @@ int ADCManager::CalculateBaseLine(){
 		//Check if the it converged
 		int check=0;
 		for(int k=0;k<8;k++){
-			if(abs(m_DACFinished[k])<3.0)
-				check=check+1;
+			if(abs(m_DACFinished[k])==1){
+				check=check+1;}
 		}
-		if(check==8){
+		if(check==n_channels_start){
 			printf(KYEL);
 			std::cout << "	Baseline Calculation Converged after: " << i << " Iterations " << std::endl << std::endl;
 			break;
@@ -304,8 +324,16 @@ int ADCManager::CalculateBaseLine(){
     }  
     		  
     fclose(dacfile);
-    printf(KYEL);
-    std::cout << fn.str() <<  " successfully written" << std::endl << std::endl;
+    
+
+    
+    if (m_interation_counter+1 >= m_iteration){
+	printf(KRED);
+      std::cout << "At least one baseline did not converge. Please relaunch the baseline calculation" << std::endl << std::endl;
+    }else{ 
+ 	printf(KYEL);   
+       std::cout << fn.str() <<  " successfully written" << std::endl << std::endl;
+    }
     printf(RESET);
 
 
@@ -518,7 +546,8 @@ int ADCManager::adc_readblt()		// the value to read
 
 //-------------------------------------------------------------------
 // Apply the Settings from the RegisterConfigFile to the ADC
-int ADCManager::RegisterWriting(string configfilename){
+int ADCManager::RegisterWriting(string configfilename, int m_verboseFlag){
+
   FILE *f_ini;
   char str[100];
   if( (f_ini = fopen(configfilename.c_str(), "r")) == NULL ) {
@@ -528,8 +557,10 @@ int ADCManager::RegisterWriting(string configfilename){
 	  return -1;
   }
   else{ printf(KYEL);
-	printf("\nReading Configuration File %s\n", configfilename.c_str());
-	std::cout << std::endl;
+	if (m_verboseFlag == 1){	
+		printf("\nReading Configuration File %s\n", configfilename.c_str());
+		std::cout << std::endl;
+	}
 	printf(RESET);
   }
   
@@ -542,15 +573,19 @@ int ADCManager::RegisterWriting(string configfilename){
           if (strstr(str, "WRITE_REGISTER")!=NULL) {
               fscanf(f_ini, "%x", (int *)&m_addr);
               fscanf(f_ini, "%x", (int *)&m_hex);
-	      printf(KGRN);
-              printf("	Address: %x Data: %x",m_addr, m_hex);
-              printf(RESET);
-	      std::cout << std::endl;
+		if (m_verboseFlag == 1){
+	      		printf(KGRN);
+              		printf("	Address: %x Data: %x",m_addr, m_hex);
+              		printf(RESET);
+	      		std::cout << std::endl;
+		}
               if (adc_writereg(m_addr,m_hex)<0){return -1;} 
           }
       }
    }
-   std::cout << std::endl;
+	if (m_verboseFlag == 1){	
+   	std::cout << std::endl;
+	}
    return 0;
 }
 
@@ -580,13 +615,28 @@ string ADCManager::IntToString(const int num)
 
 int ADCManager::Checkkeyboard(char c){
 	
-	
+	char txt3[100];
+	XMLNode xMainNode=XMLNode::openFileHelper(m_XmlFileName,"settings");
+	XMLNode xNode=xMainNode.getChildNode("global");
+	int temp3;
+	TString xstr3 = "";
+	TString xstr = "";
 
 	if (c == 'w') {
 		this->Disable();
 		for(int i=0;i<8;i++){
 			channelTresh[i]=channelTresh[i]-10;
-			adc_writereg(TresholdRegN+(i*0x0100),channelTresh[i]);
+	
+			xNode=xMainNode.getChildNode("adc").getChildNode("global");
+			xstr3= TString::Format("ch_%d_pol",i+8*GetModuleNumber());
+	      		xstr=xNode.getChildNode(xstr3.Data()).getText();
+			strcpy(txt3,xstr);
+			temp3=((int)atoi(txt3));
+			if (temp3 == 1){
+				temp3=channelTresh[i] + pow(2,15);
+			}
+
+			adc_writereg(TresholdRegN+(i*0x0100),temp3);
 		}
 		this->Enable();
 	}
@@ -595,7 +645,17 @@ int ADCManager::Checkkeyboard(char c){
 		this->Disable();
 		for(int i=0;i<8;i++){
 			channelTresh[i]=channelTresh[i]+10;
-			adc_writereg(TresholdRegN+(i*0x0100),channelTresh[i]);
+	
+			xNode=xMainNode.getChildNode("adc").getChildNode("global");
+			xstr3= TString::Format("ch_%d_pol",i+8*GetModuleNumber());
+	      		xstr=xNode.getChildNode(xstr3.Data()).getText();
+			strcpy(txt3,xstr);
+			temp3=((int)atoi(txt3));
+			if (temp3 == 1){
+				temp3=channelTresh[i] + pow(2,15);
+			}
+
+			adc_writereg(TresholdRegN+(i*0x0100),temp3);
 		}
 		this->Enable();
 	}
@@ -604,7 +664,17 @@ int ADCManager::Checkkeyboard(char c){
 			this->Disable();
 		for(int i=0;i<8;i++){
 			channelTresh[i]=channelTresh[i]-1;
-			adc_writereg(TresholdRegN+(i*0x0100),channelTresh[i]);
+	
+			xNode=xMainNode.getChildNode("adc").getChildNode("global");
+			xstr3= TString::Format("ch_%d_pol",i+8*GetModuleNumber());
+	      		xstr=xNode.getChildNode(xstr3.Data()).getText();
+			strcpy(txt3,xstr);
+			temp3=((int)atoi(txt3));
+			if (temp3 == 1){
+				temp3=channelTresh[i] + pow(2,15);
+			}
+
+			adc_writereg(TresholdRegN+(i*0x0100),temp3);
 		}
 		this->Enable();
 	}
@@ -613,7 +683,17 @@ int ADCManager::Checkkeyboard(char c){
 		this->Disable();
 		for(int i=0;i<8;i++){
 			channelTresh[i]=channelTresh[i]+1;
-			adc_writereg(TresholdRegN+(i*0x0100),channelTresh[i]);
+	
+			xNode=xMainNode.getChildNode("adc").getChildNode("global");
+			xstr3= TString::Format("ch_%d_pol",i+8*GetModuleNumber());
+	      		xstr=xNode.getChildNode(xstr3.Data()).getText();
+			strcpy(txt3,xstr);
+			temp3=((int)atoi(txt3));
+			if (temp3 == 1){
+				temp3=channelTresh[i] + pow(2,15);
+			}
+
+			adc_writereg(TresholdRegN+(i*0x0100),temp3);
 		}
 		this->Enable();
 	}

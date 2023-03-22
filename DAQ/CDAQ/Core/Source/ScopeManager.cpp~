@@ -13,8 +13,11 @@
 #include "TF1.h"
 #include "TCanvas.h"
 #include "TMath.h"
+
+
 /*
 Author: Julien Wulf UZH
+Revised: Frédéric Girard
 */
 
 
@@ -27,14 +30,14 @@ ScopeManager::~ScopeManager()
 {
 }
 
-int ScopeManager::Init(){
+int ScopeManager::Init(int m_verboseFlag){
 	//m_length=m_length+10;
 	ApplyXMLFile();
 	//win = new TCanvas("win","JDAQ -- DAQ for Zuerich (multi)",1700,768);
 	    
     	/*Slowcontrol Folder*/
-    	string command= "mkdir Plots";
-    	system(command.c_str());
+    //	string command= "mkdir Plots";
+    //	system(command.c_str());
     	std::cout << std::endl;
 
 
@@ -72,8 +75,12 @@ int ScopeManager::Init(){
 
 	// Startup Window
 	single->cd();
-
-	 TImage *img = TImage::Open("../Macro/Logo/splash.png");
+	TImage *img = TImage::Open("../Macro/Logo/splash.png");
+	if (m_channel == 2) {
+		img = TImage::Open("../Macro/Logo/splash2.png");
+	}else{
+	 	img = TImage::Open("../Macro/Logo/splash.png");
+	}
 
    	if (!img) {
       		printf("Could not create an image... exit\n");
@@ -156,8 +163,8 @@ int ScopeManager::ShowEvent(){
    			//	TVirtualFFT::SetTransform(0);
    			//	hm = g[j]->FFT(hm, "MAG");
    			//	hm->SetTitle("Magnitude of the 1st transform");
-				m_mean= (m_mean)/(wavecnt);
-				std::cout <<m_mean << std::endl;
+			//	m_mean= (m_mean)/(wavecnt);
+			//	std::cout <<m_mean << std::endl;
 			}
 			else{
 //				std::cout << "hallo" << std::endl;

@@ -70,7 +70,7 @@ class SlowcontrolManager: public Common
    int ShowStatus(int status=1);
    void AddBytes(int bytes){m_bytes=bytes+m_bytes;m_totalB=m_totalB+bytes/1024.;}			//m_total in Mb
 
-
+	  int m_verboseFlag;		//Verbose Flag: 0 = OFF, 1 = ON
 
  private:
 	int ApplyXMLFile();			//Read XML-Config for the Storage Manager

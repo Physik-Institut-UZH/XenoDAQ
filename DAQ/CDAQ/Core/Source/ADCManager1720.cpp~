@@ -18,8 +18,7 @@
 #include <algorithm>
 #include <iostream>
 #include <string>
-#include "ADCManager1730.h"
-#include "ADCManager.h"
+#include "ADCManager1720.h"
 #include "global.h"
 
 //Root Libaries
@@ -36,10 +35,11 @@
 /*
 Author: Julien Wulf UZH
 Revised: Frédéric Girard
+
 */
 
 
-ADCManager1730::ADCManager1730()
+ADCManager1720::ADCManager1720()
 {
 	m_CrateHandle= m_ADCaddr=0;
 	m_EnableVMEIrq=m_Align64=m_EnableBerr=m_EnableOLIrq=m_EnableInt=m_EvAlign=m_Frequency=m_Baseline=m_resDAC=m_resDAC=m_Voltage=m_nbCh=m_triggertyp=m_SoftwareRate=0;
@@ -48,18 +48,16 @@ ADCManager1730::ADCManager1730()
 	}
 }
 
-ADCManager1730::~ADCManager1730()
+ADCManager1720::~ADCManager1720()
 {
 }
 
-int ADCManager1730::Init(int m_verboseFlag){
-
+int ADCManager1720::Init(int m_verboseFlag){
 	if (m_verboseFlag == 1){
 		printf(KYEL);
 		printf("\nReset the ADC Module %i . . .\n\n",m_module);
 		printf(RESET);
 	}
-
 	//Reset the board first
     m_hex=0x1;
     adc_writereg(SoftwareResetReg,m_hex);
@@ -73,47 +71,37 @@ int ADCManager1730::Init(int m_verboseFlag){
 
 	//Read Settings
 	RegisterReading(m_verboseFlag);
-
-	if (m_verboseFlag == 1){
-		printf(KYEL);
-		printf("\nCalibrate the ADC . . .\n\n");
-		printf(RESET);
-	}
-
-	//calibration of the Channels with the current Setting
-    m_hex=0x1;
-    adc_writereg(ChannelCalibrationReg,m_hex);
-    sleep(3);	
 	
 	return 0;
 }
 
 //-------------------------------------------------------------------
 // Reading some Register Settings from the ADC
-int ADCManager1730::RegisterReading(int m_verboseFlag){
+int ADCManager1720::RegisterReading(int m_verboseFlag){
 	if (m_verboseFlag == 1){
 		printf(KYEL);
 		printf("Reading ADC Configurations\n\n");
 		printf(RESET);
-	}
-	printf(KGRN);
+		printf(KGRN);
+	}	
 	u_int32_t data;
 
 	// Read Board Type and Memory Size
  	adc_readreg(0x8140,data);
 	m_MemorySize=(int)((data >> 8) & 0xFF);
 	if (m_verboseFlag == 1){
-		printf("	Board Type: %s;  Memory Size: %d MByte per channel\n", "v1730D",m_MemorySize);
+		printf("	Board Type: %s;  Memory Size: %d MByte per channel\n", "v1720",m_MemorySize);
 	}
-    // Read Firmware Revisions
-	adc_readreg(FirmwareRegN,data);
-	if (m_verboseFlag == 1){	
+
+    	// Read Firmware Revisions
+	adc_readreg(FirmwareRegN,data);	
+	if (m_verboseFlag == 1){
     		printf("	Firmware: Mezzanine: %d.%d (%x/%d/%d), ", data>>8 & 0xFF, data & 0xFF, data>>16 & 0xFF, data>>24 & 0xF, 2000 + (data>>28 & 0xF));
 	}
 
 	adc_readreg(MotherBoardFWRevision,data);
 	if (m_verboseFlag == 1){	
-   		printf("	Mother Board: %d.%d (%x/%d/%d)\n", data>>8 & 0xFF, data & 0xFF, data>>16 & 0xFF, data>>24 & 0xF, 2000 + (data>>28 & 0xF));
+    		printf("	Mother Board: %d.%d (%x/%d/%d)\n", data>>8 & 0xFF, data & 0xFF, data>>16 & 0xFF, data>>24 & 0xF, 2000 + (data>>28 & 0xF));
 	}
 
 	adc_readreg(BlockOrganizationReg,data);
@@ -121,31 +109,25 @@ int ADCManager1730::RegisterReading(int m_verboseFlag){
 		printf("	Block Organization: %i\n",data);
 	}
 
-   	// Expected Event Size in Words (32Bit including Header)
+    	// Expected Event Size in Words (32Bit including Header)
 	m_ExpectedEvSize = (int)((((m_MemorySize*pow(2,20))/(int)pow(2,data))*8+16)/4);			//From the Handbook  
   	m_BufferSize = (m_EvAlign&&m_EnableBerr) ? (m_ExpectedEvSize* m_EvAlign*4):(m_ExpectedEvSize*4);
    	m_BufferSize += 524288;
 
-   // allocate memory for buffer
-   	if ( (buffer = (u_int32_t*)malloc(m_BufferSize)) == NULL) {  
-			printf(KRED);
-			printf(":::: ERROR: Can't allocate memory buffer of %d kB ::::", m_BufferSize/1024);
-			printf(RESET);
-			return -1;
+        // allocate memory for buffer
+    	if ( (buffer = (u_int32_t*)malloc(m_BufferSize)) == NULL) {  
+		printf(KRED);
+		printf(":::: ERROR: Can't allocate memory buffer of %d kB ::::", m_BufferSize/1024);
+		printf(RESET);
+		return -1;
   	}
 
 	// Read DAC Status
 	for(int i=0;i<8;i++){
 		adc_readreg( StatusRegN+(i*0x100), data);
-       		if (data&4) {
-			if (m_verboseFlag == 1){
-				printf("	Channel %i DAC Status: busy\n",i);
-			}
-		}
-       		else {
-			if (m_verboseFlag == 1){
-				printf("	Channel %i DAC Status: ok\n",i);
-			}	
+		if (m_verboseFlag == 1){
+       	       	 	if (data&4) printf("	Channel %i DAC Status: busy\n",i);
+       			else printf("	Channel %i DAC Status: ok\n",i);
 		}
 	}
 
@@ -165,19 +147,20 @@ int ADCManager1730::RegisterReading(int m_verboseFlag){
     m_EvAlign = data;
 	
 	//Read VME Control Register
-	adc_readreg(VMEControlReg,data);	  
+	adc_readreg(0xEF00,data);	  
     m_EnableBerr = (data>>4) & 1;
 	m_EnableOLIrq  = (data & 0x8);
 	m_EnableVMEIrq = (data & 0x7);
 	m_EnableInt =  m_EnableVMEIrq | m_EnableOLIrq;
-    m_Align64   = (data>>5) & 1;
+    	m_Align64   = (data>>5) & 1;
 
 	if (m_verboseFlag == 1){
-    		if (m_EnableOLIrq)  printf("	OLINK Interrupt enabled.\n");
-    		if (m_EnableVMEIrq) printf("	VME Interrupt %d enabled.\n", m_EnableVMEIrq);
+      		if (m_EnableOLIrq)  printf("	OLINK Interrupt enabled.\n");
+     		if (m_EnableVMEIrq) printf("	VME Interrupt %d enabled.\n", m_EnableVMEIrq);
 		if (!m_EnableInt)   printf(" 	No interrupts enabled.\n");
 	}
-    	// Read Monitor Configuration and DAC
+
+    // Read Monitor Configuration and DAC
 	adc_readreg(MonitorModeReg,data);
 	if (m_verboseFlag == 1){	
 	  switch (data&0xFFF) {
@@ -193,7 +176,7 @@ int ADCManager1730::RegisterReading(int m_verboseFlag){
 	      break;
 	  } 
 	}
-    	// Read FrontPanel Input Data Settings (NIM/TTL)
+    // Read FrontPanel Input Data Settings (NIM/TTL)
  	adc_readreg(FrontPanelIODataReg,data);	
 	if (m_verboseFlag == 1){
 	 if (data & 1) printf("	Front Panel Input Signal: TTL\n"); 
@@ -202,15 +185,13 @@ int ADCManager1730::RegisterReading(int m_verboseFlag){
 	//Read customsize window
 	adc_readreg(CustomWindowReg,data);
 	if (m_verboseFlag == 1){
-		printf("	Customsize window: %d\n", (int)data*10);
+		printf("	Customsize window: %d\n", (int)data*4);
 	}
-	m_length=(int)data*10-CORRECTION;								//Correction of the Event (last 10 Samples are broken
+	m_length=(int)data*4-CORRECTION;								//Correction of the Event (last 10 Samples are broken
 
 	//read Posttrigger Settings
-	adc_readreg(PostTriggerReg,data);
-	if (m_verboseFlag == 1){	
-    		printf("	PostTrigger Setting: %d samples = %.2f us\n", (int)(data)*8,(8*data)*0.002);
-	}
+	adc_readreg(PostTriggerReg,data);	
+    printf("	PostTrigger Setting: %d samples = %.2f us\n", (int)(data)*4,(4*data)*0.004);
 
 	printf(RESET);
 	
@@ -222,8 +203,7 @@ int ADCManager1730::RegisterReading(int m_verboseFlag){
 	return 0;
 }
 
-int ADCManager1730::ApplyXMLFile(){
-	
+int ADCManager1720::ApplyXMLFile(){
 	int temp;  
 	char txt[100];
 	const char *xstr;
@@ -241,33 +221,26 @@ int ADCManager1730::ApplyXMLFile(){
 		strcpy(txt,xstr); 
 		m_nbCh=(int)(atoi(txt));
 	} else error((char*)"XML-nb_chs");
-	
-
 
 	m_hex=0x0;
 	channelTresh = new int[m_nbCh];
 	for(int i=0;i<8;i++){
-        char channel[300];
-        sprintf(channel,"ch_%i",i+m_module*m_nbCh);
-        xstr=xNode.getChildNode(channel).getText();
-     if (xstr) {
-        strcpy(txt,xstr);
-        temp=atoi(txt);
-		channelTresh[i]=temp;
-        if(temp!=0){
-			m_hex=m_hex+pow(2,i);
-			adc_writereg(TresholdRegN+(i*0x0100),temp);
-			//Input Range 0-2V!
-			adc_writereg(GainRegN+(i*0x0100),0);
-		}
-     } else error((char*)channel);
-    }
+			char channel[300];
+			sprintf(channel,"ch_%i",i+m_module*m_nbCh);
+			xstr=xNode.getChildNode(channel).getText();
+			if (xstr) {
+				strcpy(txt,xstr);
+				temp=atoi(txt);
+				channelTresh[i]=temp;
+				if(temp!=0){
+					m_hex=m_hex+pow(2,i);
+					adc_writereg(TresholdRegN+(i*0x0100),temp);
+				}
+			} else error((char*)channel);
+	}
     adc_writereg(ChannelEnableMaskReg,m_hex);
     
-
-	
-
-	xstr=xNode.getChildNode("memoryorganisation").getText();
+    xstr=xNode.getChildNode("memoryorganisation").getText();
 	if (xstr) {
 		strcpy(txt,xstr); 
 		switch (atoi(txt)) {
@@ -291,20 +264,20 @@ int ADCManager1730::ApplyXMLFile(){
 	xstr=xNode.getChildNode("custom_size").getText();
 	if (xstr) {
         strcpy(txt,xstr);
-        temp=(int)(atoi(txt)/10.);       // 10 samples per memory location
+        temp=(int)(atoi(txt)/4.);       // 4 samples per memory location
 	adc_writereg(CustomWindowReg,temp);
 	} else error((char*)"XML-custom_size");
-
+	
+	
 	xstr=xNode.getChildNode("posttrigger").getText();
 	if (xstr) {
 		strcpy(txt,xstr); 
-		temp=((int)atoi(txt))/8;
+		temp=((int)atoi(txt))/4;
 		m_posttrigger=temp;
-		//m_hex=StringToHex(IntToString(temp));
 		adc_writereg(PostTriggerReg,temp);
 	} else error((char*)"XML-posttrigger");
 		
-	xstr=xNode.getChildNode("baseline").getText();
+		xstr=xNode.getChildNode("baseline").getText();
 	if (xstr) {
 		strcpy(txt,xstr);
 		m_Baseline=(int)atoi(txt); 
@@ -357,7 +330,7 @@ int ADCManager1730::ApplyXMLFile(){
 		strcpy(txt,xstr); 
 		m_resDAC=(int)atoi(txt); 
 	} else error((char*)"Sample_size_DAC");
-  
+	
 	// ADC: parse ADC Trigger Settings
 	xNode=xMainNode.getChildNode("adc").getChildNode("triggerSettings");
 
@@ -385,74 +358,30 @@ int ADCManager1730::ApplyXMLFile(){
 		}
 		else error((char*)"SoftwareRate");
 	}
-	//Channel Trigger
-    else if(temp=2){
+    else if(temp==2){
 		m_hex=0;
-		uint32_t m_dat=0;
-		
-		for(int i=0;i<4;i++){
+		for(int i=0;i<8;i++){
 			char logic[300];
-			sprintf(logic,"logic%i",i+4*m_module);
+			sprintf(logic,"trig%i",i+m_nbCh*m_module);
 			xstr=xNode.getChildNode(logic).getText();
 			
 			if (xstr) {
 				strcpy(txt,xstr); 
-				if(atoi(txt)>=0){
+				if(atoi(txt)==1){
 					m_hex=m_hex+pow(2,i);
-					m_dat=m_dat+pow(2,i);
-					m_dat=m_dat+pow(2,i+1);
-					if(atoi(txt)==1){
-						adc_writereg(LogicRegN+(i*0x200),5);
-					}
-					else if(atoi(txt)==0){
-						adc_writereg(LogicRegN+(i*0x200),7);
-					}
-					else if(atoi(txt)==2){
-						adc_writereg(LogicRegN+(i*0x200),6);
-					}
-					else if(atoi(txt)==3){
-						adc_writereg(LogicRegN+(i*0x200),4);
-					}	
 				}
 			}
 			else error((char*)logic);
 		}
-		
-		//Software + Channel Trigger by default 
+		//Software + Channel Trigger 
 		m_hex=m_hex+pow(2,31);
-		m_dat=m_dat+pow(2,31);
-		adc_writereg(FrontPanelTriggerOutReg,m_dat);
+		adc_writereg(FrontPanelTriggerOutReg,m_hex);
 		adc_writereg(TriggerSourceMaskReg,m_hex);
 	}
-	//Coincidence Trigger
     else{
-		m_hex=0;
-		uint32_t m_dat=0;
-
-		for(int i=0;i<4;i++){
-			char logic[300];
-			sprintf(logic,"logic%i",i+4*m_module);
-			xstr=xNode.getChildNode(logic).getText();
-
-			if (xstr) {
-				strcpy(txt,xstr); 
-				if(atoi(txt)>=0){
-					m_hex=m_hex+pow(2,i);
-					m_dat=m_dat+pow(2,i);
-					m_dat=m_dat+pow(2,i+1);
-				}
-				//Software + Channel Trigger by default 
-				m_hex=m_hex+pow(2,31);
-
-				m_hex=m_hex+pow(2,24);							//Means more than 1 channel above treshold
-
-				adc_writereg(FrontPanelTriggerOutReg,m_dat);
-				adc_writereg(TriggerSourceMaskReg,m_hex);
-			}
-			else error((char*)logic);
+		//Coincidence Trigger
 	 }
    }
-}
    else error((char*)"XML-trigger");
 
 	xstr=xNode.getChildNode("TTL").getText();
@@ -467,9 +396,9 @@ int ADCManager1730::ApplyXMLFile(){
 		}
 	} else error((char*)"ADC-Manager-XML-TTL");
 	
+ 
 	return 0;
 }
-
 
 
 

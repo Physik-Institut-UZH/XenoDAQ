@@ -30,14 +30,14 @@ ScopeManager::~ScopeManager()
 {
 }
 
-int ScopeManager::Init(){
+int ScopeManager::Init(int m_verboseFlag){
 	//m_length=m_length+10;
 	ApplyXMLFile();
 	//win = new TCanvas("win","JDAQ -- DAQ for Zuerich (multi)",1700,768);
 	    
     	/*Slowcontrol Folder*/
-    	string command= "mkdir Plots";
-    	system(command.c_str());
+    //	string command= "mkdir Plots";
+    //	system(command.c_str());
     	std::cout << std::endl;
 
 

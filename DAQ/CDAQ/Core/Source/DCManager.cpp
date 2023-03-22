@@ -62,7 +62,7 @@ int DCManager::Init(){
     	sleep(3);
 
 	//Set Register Setting from default file (only to give the user some freedom)
-   	RegisterWriting(m_RegisterFileName);
+   	RegisterWriting(m_RegisterFileName, m_verboseFlag);
 
 	//Set Register/other Settings from xml-file
 	ApplyXMLFile();
