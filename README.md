@@ -27,11 +27,24 @@ Two compiled scripts can be used to acquire data: SingleDAQ and MultiDAQ. Single
 
 The only mendatory file which must be provided is the XML file. Templates can be found in the "master_xml_files" directory. The XML file is a configuration file which is read at the begining of the acquisition to provide settings to the ADC. Replace "file.xml" with the actual file name. Here is a list of optional arguments:
 
+-x "file.xml" : Provides the required field values to the ADC before initilization.
+
 -f "file_name" : Provides a file name to the acquired data. When no file name is specified, the file name is composed of the date & time of the acquisition launch.
 
 -b : Launches the baseline calculation script. This enables the ADC to calibrate the baseline level, and should in principle be used before any "new" acquisition
 
--gn (n = channel number (0 to 7) : Launches acquisition with "Oscilloscope Mode". This enables the graphical display of the waveforms. This acquisition rate is much slower with this mode, and should not be used during normal acquisition. In oscilloscope mode, you can use the following commands by pressing the keys on the keyboard when the terminal is selected:
+-g p : Enables the oscilloscope mode for channel "p"
+
+-o : Display the help menu for the oscilloscope mode.
+
+-i : Display hardware information.
+
+-v : Enable Verbose mode.
+
+-h : Display the help menu.
+
+
+The oscilloscope mode enables the graphical display of the waveforms. The acquisition rate is much slower with this mode, and should not be used during normal acquisition. In oscilloscope mode, the following commands can be used by pressing the keys on the keyboard when the terminal is selected:
 
 "w" : Lower threshold by 10 ADC units
 
