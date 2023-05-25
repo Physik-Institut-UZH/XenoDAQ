@@ -1,6 +1,8 @@
 # XenoDAQ
 First DAQ used on Xenoscope. Code based on DAQ wrote by Julien Wulf. Includes SingleDAQ and MultiDAQ, with or without ZLE.
 
+This code is originally a fork from https://github.com/Physik-Institut-UZH/DAQ. 
+
 
 # Installation
 
