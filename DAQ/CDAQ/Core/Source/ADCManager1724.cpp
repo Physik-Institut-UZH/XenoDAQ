@@ -318,17 +318,17 @@ int ADCManager1724::ApplyXMLFile(){
 	if (xstr) {
 		strcpy(txt,xstr); 
 		switch (atoi(txt)) {
-			case 512: m_hex=0x0; break;
-			case 256: m_hex=0x1; break;
-			case 128: m_hex=0x2; break;
-			case  64: m_hex=0x3; break;
-			case  32: m_hex=0x4; break;
-			case  16: m_hex=0x5; break;
-			case   8: m_hex=0x6; break;
-			case   4: m_hex=0x7; break;
-			case   2: m_hex=0x8; break;
-			case   1: m_hex=0x9; break;
-			case   0: m_hex=0xA; break;  // 0.5 k
+			case 512: m_hex=0x0; break; // 1 buffer = 512 kSamples
+			case 256: m_hex=0x1; break; // 2 buffers = 256 kSamples
+			case 128: m_hex=0x2; break; // 4 buffers = 128 kSamples
+			case  64: m_hex=0x3; break; // 8 buffers = 64 kSamples
+			case  32: m_hex=0x4; break; // 16 buffers = 32 kSamples (DEFAULT)
+			case  16: m_hex=0x5; break; // 32 buffers = 16 kSamples
+			case   8: m_hex=0x6; break; // 64 buffers = 8 kSamples
+			case   4: m_hex=0x7; break; // 128 buffers = 4 kSamples
+			case   2: m_hex=0x8; break; // 256 buffers = 2 kSamples
+			case   1: m_hex=0x9; break; // 512 buffers = 1 kSamples
+			case   0: m_hex=0xA; break;  // 1024 buffers = 0.5 kSamples
 			default:  m_hex=0x4; 
 					  break; 
 		}
