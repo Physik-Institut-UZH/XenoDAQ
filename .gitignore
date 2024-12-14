@@ -2,6 +2,4 @@ DAQ/CDAQ/build/*
 DAQ/CDAQ/bin/MultiDAQ
 DAQ/CDAQ/bin/SingleDAQ
 DAQ/CDAQ/bin/Plots
-DAQ/CDAQ/bin/PM_ZLE.xml
-DAQ/CDAQ/bin/ZLE_test.xml
-
+DAQ/CDAQ/bin/*.xml

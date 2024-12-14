@@ -18,5 +18,5 @@
 /*
 Author: Julien Wulf UZH
 */
-
+ int m_verboseFlag;  					//Verbose Flag: 0 = off, 1 = on.
    

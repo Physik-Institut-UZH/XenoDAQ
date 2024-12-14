@@ -68,8 +68,9 @@ int main(int argc, char *argv[], char *envp[] )
     	//Managers
     
     	//SlowcontrolManager
+	int m_verboseFlag = 0;
 	SlowcontrolManager* slowcontrolManager = new SlowcontrolManager();
-	slowcontrolManager->ProcessInput(argc, argv, envp);
+	m_verboseFlag = slowcontrolManager->ProcessInput(argc, argv, envp);
 	if(slowcontrolManager->Init()==-1)
 		return 0;
 		
@@ -112,19 +113,19 @@ int main(int argc, char *argv[], char *envp[] )
 		adcs[i]->SetBaselineFile(bp.c_str());
 		adcs[i]->SetXMLFile(slowcontrolManager->GetXMLFile());
 
-		if(adcs[i]->Init()==-1);
+		if(adcs[i]->Init(m_verboseFlag)==-1);
 	}
 	if(slowcontrolManager->GetADCInformation()) return 0;
 	if(slowcontrolManager->GetBaselineCalculation()){
 		for(int i=0;i<number;i++){
-                        adcs[i]->ReadBaseLine();
+                        adcs[i]->ReadBaseLine(m_verboseFlag);
 			adcs[i]->CalculateBaseLine();
 		}
 		return 0;
 	}
 	else{
 		for(int i=0;i<number;i++){
-				adcs[i]->ReadBaseLine();
+				adcs[i]->ReadBaseLine(m_verboseFlag);
 		}
 	}
 	//Scope-Manager
@@ -137,7 +138,7 @@ int main(int argc, char *argv[], char *envp[] )
 		//ROOT Manager
 		TApplication *theApp;
 		theApp = new TApplication("App", &argc, argv);	
-		if(scopeManager->Init()==-1)
+		if(scopeManager->Init(m_verboseFlag)==-1)
 			return 0;
 	}
 
@@ -151,7 +152,7 @@ int main(int argc, char *argv[], char *envp[] )
 		string folder=Form("Module%i/",i);
 		storages[i]->SetModuleFolder(folder);
 		storages[i]->SetModuleNumber(i);
-		if(storages[i]->Init()==-1);	
+		if(storages[i]->Init(m_verboseFlag)==-1);
 	}
 	
 
@@ -165,6 +166,7 @@ int main(int argc, char *argv[], char *envp[] )
 	}
     c=0;
    
+	printf("Initialization Complete.\n");
     slowcontrolManager->StartAquistion();
     for(int i=0;i<slowcontrolManager->GetNbModules();i++){
 		adcs[i]->ClearMemory();				//clear memory before aquisition
